@@ -102,7 +102,7 @@ function verifyTypedData(method: string, signature: string, deadline: number): s
 			]
 		},
 		domain: {
-			name: 'kaai-finance',
+			name: 'kaai.finance',
 			version: '1',
 			chainId: chainIdHex
 		},
