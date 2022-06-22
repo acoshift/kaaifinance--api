@@ -1,0 +1,9 @@
+name = "kaaifinance--api"
+main = "src/index.ts"
+compatibility_date = "2022-06-18"
+node_compat = true
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "kf-bucket"
+preview_bucket_name = "kf-bucket"
