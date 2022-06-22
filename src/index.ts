@@ -72,7 +72,7 @@ async function price(request: Request, env: Env, ctx: ExecutionContext): Promise
 		[sender, maxSize, fee, deadline])
 
 	const signer = new ethers.Wallet(env.SIGNER_KEY)
-	const signature = await signer.signMessage(hash)
+	const signature = await signer.signMessage(ethers.utils.arrayify(hash))
 
 	return new Response(JSON.stringify({
 		sender,
@@ -84,7 +84,7 @@ async function price(request: Request, env: Env, ctx: ExecutionContext): Promise
 }
 
 function verifyTypedData(method: string, signature: string, deadline: number): string {
-	if (now() < deadline) {
+	if (now() > deadline) {
 		return ''
 	}
 
@@ -112,9 +112,15 @@ function verifyTypedData(method: string, signature: string, deadline: number): s
 		}
 	}
 
-	const typedDataHash = ethers.utils._TypedDataEncoder.hashStruct(typedData.primaryType, typedData.types, typedData.message)
-	const domainSeparator = ethers.utils._TypedDataEncoder.hashStruct('EIP712Domain', typedData.types, typedData.domain)
-	const rawData = '\x19\x01' + domainSeparator + typedDataHash
+	const typedDataHash = ethers.utils._TypedDataEncoder.hashStruct(
+		typedData.primaryType,
+		{ Request: typedData.types.Request },
+		typedData.message)
+	const domainSeparator = ethers.utils._TypedDataEncoder.hashStruct(
+		'EIP712Domain',
+		{ EIP712Domain: typedData.types.EIP712Domain },
+		typedData.domain)
+	const rawData = ethers.utils.hexConcat(['0x1901', domainSeparator, typedDataHash])
 	const challengeHash = ethers.utils.keccak256(rawData)
 
 	return ethers.utils.recoverAddress(challengeHash, signature) || ''
@@ -155,12 +161,12 @@ async function upload(request: Request, env: Env, ctx: ExecutionContext): Promis
 
 	// upload file and thumbnail
 	await Promise.all([
-		env.BUCKET.put(`thumbnail/${id}`, thumbnail, {
+		env.BUCKET.put(`thumbnail/${id}`, thumbnail.stream(), {
 			httpMetadata: {
 				contentType: thumbnail.type
 			}
 		}),
-		env.BUCKET.put(`files/${id}`, file, {
+		env.BUCKET.put(`files/${id}`, file.stream(), {
 			httpMetadata: {
 				contentType: file.type
 			}
