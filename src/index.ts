@@ -139,8 +139,8 @@ async function upload(request: Request, env: Env, ctx: ExecutionContext): Promis
 		return new Response('invalid signature', { status: 400 })
 	}
 
-	const packedId = ethers.utils.solidityPack(['uint256'], [id])
-	const callData = ethers.utils.hexConcat(['0xf4c714b4', packedId])
+	const encodeArgs = ethers.utils.defaultAbiCoder.encode(['uint256'], [id])
+	const callData = ethers.utils.hexConcat(['0xf4c714b4', encodeArgs])
 	const result = await ethCall(callData)
 
 	const r = ethers.utils.defaultAbiCoder.decode(
@@ -188,8 +188,8 @@ async function download(request: Request, env: Env, ctx: ExecutionContext): Prom
 		return new Response('invalid signature', { status: 400 })
 	}
 
-	const packedArgs = ethers.utils.solidityPack(['uint256', 'address'], [id, address])
-	const callData = ethers.utils.hexConcat(['0x63529932', packedArgs])
+	const encodeArgs = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [id, address])
+	const callData = ethers.utils.hexConcat(['0x50430957', encodeArgs])
 	const result = await ethCall(callData)
 
 	const r = ethers.utils.defaultAbiCoder.decode(['bool b'], result) as PaidResult
