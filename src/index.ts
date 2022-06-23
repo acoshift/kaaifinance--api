@@ -159,6 +159,11 @@ async function upload(request: Request, env: Env, ctx: ExecutionContext): Promis
 		return new Response('not own', { status: 400 })
 	}
 
+	const obj = await env.BUCKET.head(`files/${id}`)
+	if (obj) {
+		return new Response('already upload', { status: 400 })
+	}
+
 	// upload file and thumbnail
 	await Promise.all([
 		env.BUCKET.put(`thumbnail/${id}`, thumbnail.stream(), {
@@ -251,10 +256,10 @@ export default {
 			resp = await upload(request, env, ctx)
 		} else if (['GET', 'HEAD'].includes(request.method) &&
 			url.pathname === '/download') {
-			resp = await download(request, env, ctx)
+			return download(request, env, ctx)
 		} else if (['GET', 'HEAD'].includes(request.method) &&
 			url.pathname === '/thumbnail') {
-			resp = await thumbnail(request, env, ctx)
+			return thumbnail(request, env, ctx)
 		}
 
 		resp.headers.set('access-control-allow-origin', '*')
