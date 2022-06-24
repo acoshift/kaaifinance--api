@@ -10,6 +10,7 @@ const rpcUrl = 'https://rei-rpc.moonrhythm.io'
 const contractAddress = '0x11B6a7Fd205AB1a701Ee1d5564cDfA8dD152d47f'
 const hour = 3600
 const chainIdHex = '0xd903'
+const thumbnailMaxSize = 1 << 20
 
 function now() {
 	return Math.floor(Date.now() / 1000)
@@ -157,6 +158,12 @@ async function upload(request: Request, env: Env, ctx: ExecutionContext): Promis
 
 	if (r.sender.toLowerCase() !== address.toLowerCase()) {
 		return new Response('not own', { status: 400 })
+	}
+	if (BigNumber.from(file.size).gt(r.maxSize)) {
+		return new Response('file size exceed', { status: 400 })
+	}
+	if (thumbnail.size > thumbnailMaxSize) {
+		return new Response('thumbnail size exceed', { status: 400 })
 	}
 
 	const obj = await env.BUCKET.head(`files/${id}`)
